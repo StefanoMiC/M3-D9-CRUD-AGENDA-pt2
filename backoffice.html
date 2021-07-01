@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+
+    <style>
+        .validated input:required:invalid,
+        .validated input:focus:invalid,
+        .validated textarea:required:invalid,
+        .validated textarea:focus:invalid {
+            border-color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Strive CRUD Agenda</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="./backoffice.html">Backoffice</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="d-inline-block mt-5 mb-3">Backoffice </h2>
+                <h5 id="subtitle" class="d-inline-block"></h5>
+
+                <hr />
+
+                <span id="alert-box"></span>
+
+                <form onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="name">Event Name</label>
+                        <input id="name" type="text" class="form-control" aria-describedby="name field"
+                            placeholder="Insert a name for the event" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Event Description</label>
+                        <textarea id="description" type="text" rows="6" class="form-control"
+                            aria-describedby="event description field" placeholder="Write the event's description"
+                            required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Event Ticket Price</label>
+                        <input id="price" type="number" class="form-control" aria-describedby="ticket price field"
+                            placeholder="write the ticket's price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Event Date and Time</label>
+                        <input id="time" type="datetime-local" class="form-control"
+                            aria-describedby="date and time field" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary"
+                            onclick="this.form.classList.add('validated')"><span>Submit</span>
+                            <div id="spinner" class="spinner-border spinner-border-sm text-light d-none" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </button>
+                        <button id="delete-btn" type="button" class="btn btn-danger d-none" onclick="handleDelete()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                class="bi bi-trash" viewBox="0 0 16 16">
+                                <path
+                                    d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                <path fill-rule="evenodd"
+                                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const eventId = new URLSearchParams(window.location.search).get("id")
+
+        const endpoint = eventId ? "https://striveschool-api.herokuapp.com/api/agenda/" + eventId : "https://striveschool-api.herokuapp.com/api/agenda/"
+        const method = eventId ? "PUT" : "POST"
+
+        window.onload = async () => {
+            console.log("Resource ID is: " + eventId)
+
+            if (eventId) {
+                document.getElementById("subtitle").innerText = " — Edit Event"
+                const submitBtn = document.querySelector("button[type=submit]")
+                const submitBtnText = document.querySelector("button[type=submit] span")
+
+                submitBtn.querySelector("span").innerText = "Edit Event"
+                submitBtn.classList.remove("btn-primary")
+                submitBtn.classList.add("btn-success")
+
+                // submitBtn.className = "btn btn-success" // need to maintain every element that you need in the class later.
+
+                document.getElementById("delete-btn").classList.remove("d-none")
+
+                const response = await fetch(endpoint)
+                const eventDetails = await response.json()
+
+                document.getElementById("name").value = eventDetails.name
+                document.getElementById("description").value = eventDetails.description
+                document.getElementById("price").value = eventDetails.price
+                document.getElementById("time").value = eventDetails.time.split(".")[0]
+
+
+            } else {
+                document.getElementById("subtitle").innerText = " — Create an Event"
+            }
+        }
+
+        //     OBJ MODEL
+        // {
+        //     "name": "Appointment 5",
+        //     "description": "Test appointment for morning lecture",
+        //     "price": 50,
+        //     "time": "2021-05-26T08:14:00.000Z"
+        // }
+
+        const handleSubmit = async (event) => {
+            event.preventDefault()
+            // this is stopping the default behavior from the browser
+            // about this specific event, which would instead refresh the page and insert some
+            // querystrings into the address bar
+
+            isLoading(true)
+
+            const newEvent = {
+                name: document.getElementById("name").value,
+                description: document.getElementById("description").value,
+                price: document.getElementById("price").value,
+                time: document.getElementById("time").value
+            }
+
+            // console.log(JSON.stringify(myEvent))
+            try {
+                const response = await fetc(endpoint, {
+                    method,
+                    // POST method is used for CREATING NEW RESOURCES
+                    body: JSON.stringify(newEvent),
+                    // the body property is the payload of our call,
+                    // so the content we want to carry!
+                    // it must be a STRING
+                    // so our myEvent object needs to be stringified
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                    // the headers in an HTTP call are all about meta-information
+                    // we need to pass the "Content-Type" to make our APIs aware
+                    // that our payload is not any string, but it's an object stringified
+                })
+
+                //400 user generated errors
+                //500 server generated errors
+                if (response.ok) {
+                    // if you are here, everything went well => status code 200 ~ 299
+                    const respEvent = await response.json()
+                    if (eventId) {
+                        showAlert("success", "Appointment with an id of: " + respEvent._id + " got edited successfully")
+                    } else {
+                        showAlert("success", "Appointment created successfully with an id of " + respEvent._id)
+                    }
+                } else {
+                    // something went wrong
+
+                    //since fetch will never throw an error except when there's no connection we can rely on response.ok being false and
+                    //deal with status codes by manually throw an exception that will be caught by the catch clause below
+                    if (response.status >= 400 && response.status < 500) {
+                        throw new Error("User generated error, verify the data that you are sending")
+                    } else if (response.status >= 500 && response.status < 600) {
+                        throw new Error("Server generated error, contact the admin to fix this")
+                    }
+                }
+                // ANYTHING HERE WILL BE IGNORED IF AN EXCEPTION IS THROWN
+                console.log("You see me? then no exeption was thrown")
+            } catch (err) {
+                //Every error that happens or gets thrown by us in the try block will be handled here
+                console.log(err)
+                showAlert("danger", err.message)
+            } finally {
+                // THIS WILL EXECUTE EVEN IN THE EVENT OF AN ERROR BEING THROWN
+                isLoading(false)
+                console.log("You are going to see me every time, no matter what")
+            }
+        }
+
+        const handleDelete = async () => {
+            const confirmed = confirm("Are you sure you want to delete this?")
+            if (confirmed) {
+                try {
+                    const response = await fetch(endpoint, { method: "DELETE" })
+                    if (response.ok) {
+                        showAlert("success", "Event deleted successfully")
+                        setTimeout(() => { window.location.assign("/") }, 4100)
+                    } else {
+                        showAlert("danger", "Something went wrong in the deletion process")
+                    }
+                } catch (err) {
+                    showAlert("danger", err.message)
+                }
+            }
+        }
+
+        const showAlert = (type, msg) => {
+
+            const alertContainer = document.getElementById("alert-box")
+
+            alertContainer.innerHTML = `
+            <div class="alert alert-${type}" role="alert">
+            ${msg}
+            </div>
+            `
+
+            setTimeout(() => {
+                alertContainer.innerHTML = ""
+            }, 4000)
+        }
+
+        const isLoading = (boolean) => {
+            if (boolean) {
+                document.querySelector("#spinner").classList.remove("d-none")
+            } else {
+                document.querySelector("#spinner").classList.add("d-none")
+            }
+        }
+
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+
+
+</body>
+
+</html>
